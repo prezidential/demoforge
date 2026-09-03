@@ -3,64 +3,61 @@
 This project produces narrated product demo videos. Playwright drives the real
 product, ElevenLabs narrates, ffmpeg assembles.
 
-**The only file a human should be editing is `demo.config.json`.** Your main job
-is writing that file well.
+## Where the knowledge lives
 
-## The loop
+The rules for *authoring a demo* — reading the inventory, choosing selectors,
+writing narration, scene budgets, card modes, troubleshooting a bad build — are
+in the bundled skills, not here:
+
+- `skills/demo-video/` — writing and fixing `demo.config.json` (start here)
+- `skills/demo-setup/` — first-run setup, keys, login, discovery
+- `skills/demo-build/` — which stage to run and what each one costs
+
+They live as skills so they travel with the plugin instead of being stranded in
+this folder. **If you are here to make a demo, read `skills/demo-video/SKILL.md`.**
+
+This file covers working *on* the pipeline itself.
+
+## Ground rules
+
+- **`demo.config.json` is the only file a human should edit** to make a demo.
+  Treat changes to `src/` as pipeline work, and only do them when asked.
+- **Never commit `.auth/state.json`** — it is a live authenticated session.
+  Anyone holding it is logged in as that user. It is gitignored; keep it that way.
+- **Never commit `.env`.** Keys go there, never into `demo.config.json`.
+- **Do not run `npm run build` to test a change.** `npm run validate` is free and
+  takes seconds; `npm run preview:overlay` renders the graphics for free.
+
+## Layout
 
 ```
-npm run discover -- /route /route   # inventory the product
-                                     # → you write demo.config.json
-npm run validate                     # check it without spending anything
-npm run build                        # narrate + record + compose
+src/
+  config.js          .env loading, actionable failures
+  doctor.js          health checks (exported; setup reuses them)
+  setup.js           interactive first-run wizard
+  auth.js            headed login, saves .auth/state.json
+  discover.js        route inventory → build/inventory.json
+  validate.js        selector + narration length check
+  narrate.js         ElevenLabs → build/narration/*.mp3 + manifest
+  record.js          drives the product, one continuous recording
+  overlay.js         title cards, end card, callouts (injected CSS/DOM)
+  preview-overlay.js renders overlays to stills without a full build
+  compose.js         audio levelling, head trim, mux to mp4
+brand/               design-system assets consumed by overlay.js
+skills/              the plugin's bundled skills
 ```
 
-## Writing scenes
+## Things that will bite you
 
-Read `build/inventory.json` first. It lists every interactive element per route
-with a `stability` rating. **Always prefer `stability: "high"` selectors.**
-A `medium` selector (text-based, aria-label) breaks when copy changes. If the
-only option for a key element is `medium` or `low`, say so in your response
-rather than silently using it — that's a real maintenance cost the user should
-know about.
+- **Timing is a contract.** `narrate` measures each clip; `record` treats those
+  durations as scene budgets; `compose` muxes with `-shortest`. Change a duration
+  anywhere and the downstream stages must be re-run.
+- **`headTrim` is measured, never assumed.** Under-trimming the head silently
+  truncates the *end* of the video.
+- **The overlay is injected into someone else's page.** No external stylesheets,
+  fonts, or images — a strict CSP will drop them mid-recording. Everything is
+  inlined as a data URI from `brand/`.
+- **`validate` never clicks.** Selectors that only exist after an interaction
+  will report as missing. That is a limitation, not a bug.
 
-The screenshots in `build/discovery/` show what each route looks like. Use them
-to decide what's actually worth pointing a camera at.
-
-### Narration
-
-Each scene pairs one line of narration with the steps performed while it plays.
-The recorder holds the frame until the voiceover finishes, so the narration
-length sets the scene length.
-
-- Aim for 6–12 seconds per scene, roughly 15–30 words.
-- Write for the ear, not the page. Short sentences. No semicolons.
-- Do not narrate what is visibly happening ("now I'm clicking approve"). Narrate
-  why it matters ("approve, and provisioning starts immediately").
-- Lead with the problem the feature solves, not the feature name.
-
-### Steps
-
-Available actions are documented in README.md. Notes that matter:
-
-- Every `click` should be preceded by the element existing — add a `waitFor` if
-  the page navigated.
-- Use `callout` sparingly. Two or three per video. More than that and it stops
-  reading as emphasis.
-- After a `callout`, always `clearCallout` before the scene ends.
-- Add a `pause` of 600–1200ms after anything that changes the screen, so the
-  viewer's eye can land before the next thing moves.
-
-### Scene budget
-
-If `validate` warns that a line is long, split the scene rather than trimming
-the narration to fit. Two 8-second scenes read better than one 16-second one.
-
-## Do not
-
-- Do not edit files in `src/` unless the user asks for a pipeline change.
-- Do not commit `.auth/state.json` — it is a live session.
-- Do not run `npm run build` to test a config change. Run `npm run validate`
-  first; it is free and takes seconds.
-- Do not invent selectors. If it is not in `build/inventory.json`, run
-  `npm run discover` on that route instead of guessing.
+Full failure catalogue: `skills/demo-video/references/troubleshooting.md`.

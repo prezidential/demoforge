@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "demoforge",
+  "description": "Internal tooling for producing narrated product demo videos",
+  "owner": {
+    "name": "David Lee"
+  },
+  "plugins": [
+    {
+      "name": "demoforge",
+      "description": "Narrated product demo videos from a single config file. Guided setup, product discovery, and scene authoring.",
+      "author": { "name": "David Lee" },
+      "source": ".",
+      "category": "productivity"
+    }
+  ]
+}

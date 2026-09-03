@@ -8,40 +8,92 @@ deployed URL with a saved login.
 demo.config.json  →  narrate  →  record  →  compose  →  build/<name>.mp4
 ```
 
+## Quick start
+
+```bash
+npm install
+npx playwright install chromium
+npm run setup        # guided: API key, voice, login, discovery
+```
+
+`npm run setup` walks through everything interactively and is safe to re-run —
+each step detects what is already configured and offers to keep it. It never
+overwrites scenes you have written.
+
+Then describe the demo you want to Claude Code, or write `demo.config.json` by
+hand starting from `demo.config.example.json`:
+
+```bash
+npm run validate     # check every selector, free, seconds
+npm run build        # narrate + record + compose
+```
+
+Stuck? `npm run doctor` checks the toolchain, validates your API key, and
+confirms your saved login still works by actually navigating.
+
 ## The loop
 
 ```
-npm run discover -- /requests /settings   # inventory routes and selectors
-                                           # edit demo.config.json (or let Claude Code do it)
-npm run validate                           # check selectors, free and fast
-npm run build                              # narrate + record + compose
+npm run discover -- /agents /settings   # inventory routes and selectors
+                                        # edit demo.config.json (or let Claude Code do it)
+npm run validate                        # check selectors, free and fast
+npm run preview:overlay                 # see the cards and callouts, free
+npm run build                           # narrate + record + compose
 ```
 
 `discover` and `validate` exist so you never hand-write a selector or find out
 about a typo five minutes into a render.
 
-## Setup
+## Commands
 
-```bash
-npm install
-npx playwright install chromium
-export ELEVENLABS_API_KEY=...
-npm run auth        # once — log in by hand, session is saved
-```
+| command | cost | what it does |
+|---|---|---|
+| `setup` | — | interactive first run |
+| `doctor` | — | health check, exits non-zero, CI-safe |
+| `auth` | — | headed login, saves the session |
+| `discover` | — | inventory routes → `build/inventory.json` |
+| `validate` | free | resolve selectors, estimate runtime |
+| `preview:overlay` | free | render cards and callouts to stills |
+| `narrate` | characters | one mp3 per scene, cached |
+| `record` | minutes | drive the product, one continuous take |
+| `compose` | seconds | level audio, trim, mux |
+| `build` | all three | narrate → record → compose |
+
+`narrate` caches per scene, so re-running only re-bills the lines you actually
+changed. The cache key covers the voice and model too — changing either
+correctly regenerates everything.
+
+## Secrets
+
+Two files must never be committed. Both are gitignored from the first commit:
+
+- **`.env`** — your ElevenLabs API key. `setup` writes it with mode 0600
+- **`.auth/state.json`** — a live authenticated session. Anyone holding it is
+  logged in as you
 
 `npm run auth` opens a headed browser. Log in however your product requires
-(SSO, MFA, anything) and press Enter. Playwright writes the cookies and local
-storage to `.auth/state.json`, and every later run starts already authenticated.
-That file is a live session — it's gitignored, keep it that way.
+(SSO, MFA, anything) and press Enter. Every later run starts authenticated.
 
-## Running
+## Use with Claude Code
 
-```bash
-npm run build       # narrate + record + compose
+This repo is also a Claude Code plugin. The knowledge that makes a demo good —
+selector stability, writing narration for the ear, scene budgets, the failure
+modes worth knowing — ships as skills so it travels with the tool:
+
+- `demo-video` — writing and fixing `demo.config.json`
+- `demo-setup` — first run, keys, login, discovery
+- `demo-build` — which stage to run and what each costs
+
+Install it from a clone:
+
+```
+/plugin marketplace add /path/to/demoforge
+/plugin install demoforge@demoforge
 ```
 
-Or the stages separately while you're iterating. `narrate` caches per scene, so
-re-running only re-bills the lines you actually changed.
+Adding a marketplace by local path always works, so a private clone is never a
+dead end. Adding it directly by remote URL may also work depending on your
+Claude Code version and how the remote authenticates.
 
 ## Why narration comes first
 
@@ -233,3 +285,33 @@ whether you have a 90-second video before you render one.
 
 Exit code is non-zero on failure, so it drops straight into CI if you ever want
 demos rebuilt on every release.
+
+## Moving this to another machine
+
+The repo carries no secrets, so it transfers cleanly. `git bundle` packs the
+whole history into one file, and because it only packs committed objects, the
+ignored files (`.env`, `.auth/`, `build/`) cannot travel by accident.
+
+On the source machine:
+
+```bash
+git bundle create ../demoforge.bundle --all
+```
+
+Copy that single file across, then on the destination:
+
+```bash
+git clone demoforge.bundle demoforge
+cd demoforge
+git remote remove origin              # points at the bundle file
+git remote add origin git@gitlab.example.com:team/demoforge.git
+git push -u origin main
+
+npm install
+npx playwright install chromium
+npm run setup                         # your own API key and login
+```
+
+`npm run setup` is required on the new machine — the API key and the login
+session are deliberately not part of the repo. `npm run doctor` will tell you
+exactly what is still missing.

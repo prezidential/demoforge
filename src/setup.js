@@ -15,7 +15,27 @@ import { spawnSync } from 'node:child_process';
 import { loadEnv, writeEnvValue } from './config.js';
 import { checkNode, checkBinary, checkBrowser } from './doctor.js';
 
-const rl = readline.createInterface({ input: stdin, output: stdout });
+// Created lazily: at module scope the open interface keeps the event loop
+// alive, so merely importing this file for its helpers would hang the process.
+let rl = null;
+let cancelled = false;
+
+function ui() {
+  if (!rl) {
+    rl = readline.createInterface({ input: stdin, output: stdout });
+    // Ctrl-D, or a closed pipe, ends the interface. Every later prompt would
+    // then throw ERR_USE_AFTER_CLOSE and dump a stack trace over a half-finished
+    // setup. Treat it as what the user meant: cancel, and write nothing.
+    rl.on('close', () => { cancelled = true; });
+  }
+  return rl;
+}
+
+function bailIfCancelled() {
+  if (!cancelled) return;
+  console.log('\n\nSetup cancelled — nothing was written.\n');
+  process.exit(130);
+}
 
 const B = (s) => `\x1b[1m${s}\x1b[0m`;
 const dim = (s) => `\x1b[2m${s}\x1b[0m`;
@@ -27,21 +47,25 @@ function heading(n, total, title) {
 }
 
 async function ask(question, fallback = '') {
+  bailIfCancelled();
   const suffix = fallback ? dim(` [${fallback}]`) : '';
-  const answer = (await rl.question(`${question}${suffix}: `)).trim();
+  const answer = (await ui().question(`${question}${suffix}: `)).trim();
+  bailIfCancelled();
   return answer || fallback;
 }
 
 async function confirm(question, defaultYes = true) {
+  bailIfCancelled();
   const hint = defaultYes ? 'Y/n' : 'y/N';
-  const a = (await rl.question(`${question} ${dim(`(${hint})`)} `)).trim().toLowerCase();
+  const a = (await ui().question(`${question} ${dim(`(${hint})`)} `)).trim().toLowerCase();
+  bailIfCancelled();
   if (!a) return defaultYes;
   return a.startsWith('y');
 }
 
 /** Read a line without echoing it, so a pasted key never lands in scrollback. */
 function askSecret(question) {
-  if (!stdin.isTTY) return rl.question(`${question}: `);
+  if (!stdin.isTTY) return ui().question(`${question}: `);
   return new Promise((resolve) => {
     stdout.write(`${question}: `);
     stdin.setRawMode(true);
@@ -271,7 +295,7 @@ async function stepDiscover(n, total) {
   run('npm', ['run', 'discover', '--', ...routes.split(/\s+/).filter(Boolean)]);
 }
 
-function writeConfig({ name, baseUrl, voice }) {
+export function writeConfig({ name, baseUrl, voice }) {
   const file = 'demo.config.json';
   const existing = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
 
@@ -301,6 +325,16 @@ async function main() {
   console.log(`\n${B('demoforge setup')}`);
   console.log(dim('Narrated product demo videos. Ctrl-C to stop; re-run any time.\n'));
 
+  if (!stdin.isTTY) {
+    console.log(
+      'This is an interactive wizard and needs a terminal.\n\n' +
+      '  Run it directly:  npm run setup\n' +
+      '  To automate instead, write .env and demo.config.json yourself\n' +
+      '  (see .env.example and demo.config.example.json), then: npm run doctor\n'
+    );
+    process.exit(1);
+  }
+
   const TOTAL = 6;
   const existing = fs.existsSync('demo.config.json')
     ? JSON.parse(fs.readFileSync('demo.config.json', 'utf8'))
@@ -327,7 +361,8 @@ async function main() {
     ${B('npm run validate')}    check every selector, free and fast
     ${B('npm run build')}       narrate, record, compose
 `);
-  rl.close();
+  rl?.close();
 }
 
-await main();
+// Run only when invoked directly, so writeConfig stays importable for tests.
+if (import.meta.url === `file://${process.argv[1]}`) await main();
