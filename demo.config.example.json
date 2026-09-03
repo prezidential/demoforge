@@ -1,0 +1,44 @@
+{
+  "name": "product-demo",
+  "baseUrl": "https://app.example.com",
+  "viewport": { "width": 1440, "height": 900 },
+  "voice": {
+    "voiceId": "cjVigY5qzO86Huf0OWal",
+    "modelId": "eleven_multilingual_v2",
+    "settings": { "stability": 0.5, "similarity_boost": 0.75, "use_speaker_boost": true }
+  },
+  "auth": {
+    "loginUrl": "https://app.example.com/login",
+    "note": "Run `npm run auth` once. It opens a headed browser, you log in by hand, and it saves .auth/state.json. Never commit that file."
+  },
+  "scenes": [
+    {
+      "id": "title",
+      "narration": "Replace this line with the problem your product solves. Fifteen to thirty words, written for the ear.",
+      "card": {
+        "title": "Your Product",
+        "subtitle": "What this walkthrough covers"
+      },
+      "steps": []
+    },
+    {
+      "id": "first-screen",
+      "narration": "Say why this screen matters, not what is visibly happening on it. Lead with the problem, never the feature name.",
+      "steps": [
+        { "action": "goto", "path": "/" },
+        { "action": "waitFor", "selector": "[data-testid='replace-me']" },
+        { "action": "pause", "ms": 900 }
+      ]
+    },
+    {
+      "id": "outro",
+      "narration": "Close on what changed for the viewer. One sentence, then stop talking.",
+      "card": {
+        "title": "The payoff.",
+        "subtitle": "In four words or so.",
+        "mode": "end"
+      },
+      "steps": []
+    }
+  ]
+}

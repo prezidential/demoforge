@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "setup": "node src/setup.js",
+    "doctor": "node src/doctor.js",
     "auth": "node src/auth.js",
     "discover": "node src/discover.js",
     "validate": "node src/validate.js",

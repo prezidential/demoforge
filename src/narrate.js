@@ -11,11 +11,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { requireApiKey, loadConfig } from './config.js';
 
-const API_KEY = process.env.ELEVENLABS_API_KEY;
-if (!API_KEY) throw new Error('Set ELEVENLABS_API_KEY in your environment.');
-
-const config = JSON.parse(fs.readFileSync('demo.config.json', 'utf8'));
+const API_KEY = requireApiKey();
+const config = loadConfig();
 const outDir = path.join('build', 'narration');
 fs.mkdirSync(outDir, { recursive: true });
 
