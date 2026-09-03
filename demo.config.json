@@ -1,0 +1,217 @@
+{
+  "name": "agent-governance-walkthrough",
+  "baseUrl": "https://beta.use1.zuma.saviyntcloud.com",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "voice": {
+    "voiceId": "cjVigY5qzO86Huf0OWal",
+    "modelId": "eleven_v3",
+    "settings": {
+      "stability": 0.5,
+      "similarity_boost": 0.75,
+      "use_speaker_boost": true
+    }
+  },
+  "auth": {
+    "loginUrl": "https://beta.use1.zuma.saviyntcloud.com/login",
+    "note": "Run `npm run auth` once. It opens a headed browser, you log in by hand, and it saves .auth/state.json. Never commit that file."
+  },
+  "scenes": [
+    {
+      "id": "title",
+      "narration": "Every company is deploying AI agents right now. Very few can say how many they have, or what those agents are allowed to touch.",
+      "card": {
+        "title": "Governing AI Agents",
+        "subtitle": "Inventory, ownership, and access"
+      },
+      "steps": []
+    },
+    {
+      "id": "agent-inventory",
+      "narration": "This is the full agent inventory. Discovered automatically across every platform, so nothing runs in the dark.",
+      "steps": [
+        {
+          "action": "goto",
+          "path": "/agents"
+        },
+        {
+          "action": "waitFor",
+          "selector": "[data-testid='agent-manage-search-input']"
+        },
+        {
+          "action": "pause",
+          "ms": 900
+        }
+      ]
+    },
+    {
+      "id": "inventory-columns",
+      "narration": "Platform, model, status, owner. The unglamorous fields that decide whether an agent is governed or just running loose.",
+      "steps": [
+        {
+          "action": "pause",
+          "ms": 1000
+        }
+      ]
+    },
+    {
+      "id": "find-agent",
+      "narration": "Say a reviewer asks about one specific agent. Search narrows the whole inventory down to the one that matters.",
+      "steps": [
+        {
+          "action": "type",
+          "selector": "[data-testid='agent-manage-search-input']",
+          "text": "AccessReviewAgent"
+        },
+        {
+          "action": "pause",
+          "ms": 1200
+        }
+      ]
+    },
+    {
+      "id": "open-agent",
+      "narration": "Opening it gives you the whole picture in one panel. What it does, who runs it, and what it can reach.",
+      "steps": [
+        {
+          "action": "click",
+          "selector": "text=\"AccessReviewAgent\""
+        },
+        {
+          "action": "waitFor",
+          "selector": "[data-testid='agent-side-panel-tab-overview']"
+        },
+        {
+          "action": "pause",
+          "ms": 900
+        }
+      ]
+    },
+    {
+      "id": "agent-criticality",
+      "narration": "Criticality is set on the agent itself. That rating is what the policies read when they decide how hard to push back.",
+      "steps": [
+        {
+          "action": "callout",
+          "selector": "[data-testid='agent-side-panel-criticality-menu']",
+          "text": "Risk rating lives on the agent"
+        },
+        {
+          "action": "pause",
+          "ms": 1200
+        },
+        {
+          "action": "clearCallout"
+        }
+      ]
+    },
+    {
+      "id": "agent-owners",
+      "narration": "Every agent needs a human answerable for it. A business owner and a technical owner, named, not implied.",
+      "steps": [
+        {
+          "action": "click",
+          "selector": "[data-testid='agent-side-panel-tab-owners']"
+        },
+        {
+          "action": "pause",
+          "ms": 1400
+        }
+      ]
+    },
+    {
+      "id": "agent-access",
+      "narration": "And here is the gap. This agent has no gateway attached, so nothing is governing the tools it reaches for.",
+      "steps": [
+        {
+          "action": "click",
+          "selector": "[data-testid='agent-side-panel-tab-access']"
+        },
+        {
+          "action": "pause",
+          "ms": 1400
+        }
+      ]
+    },
+    {
+      "id": "gateway-list",
+      "narration": "Access gateways close that gap. Each one is a governed front door to the tools an agent is allowed to use.",
+      "steps": [
+        {
+          "action": "goto",
+          "path": "/agent-gateway"
+        },
+        {
+          "action": "waitFor",
+          "selector": "[data-testid='gateway-listing-create-button']"
+        },
+        {
+          "action": "pause",
+          "ms": 900
+        }
+      ]
+    },
+    {
+      "id": "gateway-create-form",
+      "narration": "Setting one up takes a name and a description. The hard part, enforcing policy on every call, is already built in.",
+      "steps": [
+        {
+          "action": "click",
+          "selector": "[data-testid='gateway-listing-create-button']"
+        },
+        {
+          "action": "waitFor",
+          "selector": "[data-testid='gateway-form-name-input']"
+        },
+        {
+          "action": "pause",
+          "ms": 700
+        },
+        {
+          "action": "type",
+          "selector": "[data-testid='gateway-form-name-input']",
+          "text": "AccessReviewAgent Gateway"
+        },
+        {
+          "action": "type",
+          "selector": "[data-testid='gateway-form-description-input']",
+          "text": "Governed tool access for the access review agent."
+        },
+        {
+          "action": "pause",
+          "ms": 600
+        }
+      ]
+    },
+    {
+      "id": "gateway-submit",
+      "narration": "Create, and the gateway comes up with its own server address. Point the agent at it, and every tool call runs through governance.",
+      "steps": [
+        {
+          "action": "callout",
+          "selector": "[data-testid='gateway-form-submit-button']",
+          "text": "Provisions on create"
+        },
+        {
+          "action": "pause",
+          "ms": 1500
+        },
+        {
+          "action": "clearCallout"
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "narration": "Inventory, ownership, and a governed path to every tool. That is how agents stay accountable at scale.",
+      "card": {
+        "title": "Know every agent.",
+        "subtitle": "Govern every tool call.",
+        "mode": "end"
+      },
+      "steps": []
+    }
+  ]
+}

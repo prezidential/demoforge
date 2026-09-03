@@ -1,0 +1,19 @@
+# Live authenticated session to the target product. Never commit this —
+# anyone with it is logged in as you.
+.auth/
+
+# API keys.
+.env
+.env.local
+
+# Generated: narration audio, raw recordings, previews, finished video.
+# All of it is reproducible from demo.config.json.
+build/
+
+# Finished videos anywhere in the tree.
+*.mp4
+*.webm
+
+node_modules/
+
+.DS_Store

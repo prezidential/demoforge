@@ -1,0 +1,19 @@
+{
+  "name": "demoforge",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "auth": "node src/auth.js",
+    "discover": "node src/discover.js",
+    "validate": "node src/validate.js",
+    "narrate": "node src/narrate.js",
+    "record": "node src/record.js",
+    "compose": "node src/compose.js",
+    "build": "npm run narrate && npm run record && npm run compose",
+    "preview:overlay": "node src/preview-overlay.js"
+  },
+  "devDependencies": {
+    "playwright": "^1.50.0"
+  }
+}
