@@ -6,6 +6,17 @@ version: 0.3.0
 
 # Setting up demoforge
 
+## What the user needs before starting
+
+- **Node 18+**, and **ffmpeg** on PATH (it provides both `ffmpeg` and `ffprobe`).
+  `npm install` does not supply ffmpeg — on macOS it is `brew install ffmpeg`
+- **Their own ElevenLabs API key.** Quota and billing are per account, so keys
+  are not shared between colleagues
+- **A login for the product being demoed.** They log in by hand once
+
+Claude Code itself is not required to run the pipeline — every stage is an npm
+script. It is required only for authoring scenes from the inventory.
+
 ## First run
 
 ```

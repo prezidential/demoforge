@@ -8,6 +8,32 @@ deployed URL with a saved login.
 demo.config.json  →  narrate  →  record  →  compose  →  build/<name>.mp4
 ```
 
+## What you need
+
+| | why |
+|---|---|
+| **Node 18+** | the pipeline is plain Node, no framework |
+| **ffmpeg** | measures narration length and assembles the video. Provides both `ffmpeg` and `ffprobe` |
+| **An ElevenLabs API key** | narration. Each person needs their own — quota is per account |
+| **A login for the product you are demoing** | you log in by hand once; the session is saved |
+
+macOS: `brew install ffmpeg`. Linux: your package manager. Windows: install
+ffmpeg and put it on `PATH`.
+
+On ElevenLabs cost: a 12-scene, 90-second demo is roughly 1,300 characters per
+full re-narrate, and `narrate` caches per scene so editing one line re-bills only
+that line. That is small, but check the plan before showing the result to a
+customer — free tiers generally restrict commercial use and require attribution,
+which is a licensing question rather than a quota one.
+
+**Claude Code is optional.** Every stage runs from the terminal on its own. What
+Claude Code adds is scene authoring — it reads `build/inventory.json` and writes
+`demo.config.json` for you, following the rules in `.claude/skills/`. Without it
+you write that file by hand from `demo.config.example.json`, which is
+perfectly workable, just slower.
+
+`npm run doctor` checks all of the above and names anything missing.
+
 ## Quick start
 
 ```bash
