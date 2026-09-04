@@ -276,7 +276,7 @@ async function stepAuth(n, total, baseUrl) {
   heading(n, total, 'Log in to the product');
 
   if (fs.existsSync('.auth/state.json')) {
-    console.log('  A saved session already exists.');
+    console.log(`  A saved session already exists (for ${baseUrl}).`);
     if (!await confirm('  Log in again?', false)) return;
   }
   console.log(dim('  A browser will open. Log in however the product requires — SSO, MFA,'));
@@ -295,13 +295,14 @@ async function stepDiscover(n, total) {
   run('npm', ['run', 'discover', '--', ...routes.split(/\s+/).filter(Boolean)]);
 }
 
-export function writeConfig({ name, baseUrl, voice }) {
+export function writeConfig({ name, baseUrl, voice, resetScenes = false }) {
   const file = 'demo.config.json';
   const existing = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
 
   // Never destroy authored scenes. Setup owns identity and voice; the scenes
-  // belong to whoever wrote them.
-  const scenes = existing?.scenes?.length
+  // belong to whoever wrote them. The exception is an explicit reset, for when
+  // the scenes were written against a different product entirely.
+  const scenes = existing?.scenes?.length && !resetScenes
     ? existing.scenes
     : JSON.parse(fs.readFileSync('demo.config.example.json', 'utf8')).scenes;
 
@@ -344,10 +345,28 @@ async function main() {
   await stepApiKey(2, TOTAL);
   const voice = await stepVoice(3, TOTAL, existing?.voice);
   const { name, baseUrl } = await stepProduct(4, TOTAL, existing);
+
+  // Scenes are written against one product's selectors. Pointing setup at a
+  // different host means the existing scenes cannot resolve — offer a clean
+  // slate rather than leaving someone to discover it at validate time.
+  let resetScenes = false;
+  const switchedProduct = existing?.baseUrl && existing.baseUrl !== baseUrl && existing.scenes?.length;
+  if (switchedProduct) {
+    console.log(
+      `\n  This config has ${existing.scenes.length} scenes written for ${existing.baseUrl},\n` +
+      `  whose selectors will not exist on ${baseUrl}.`
+    );
+    resetScenes = await confirm('  Replace them with the starter example?', true);
+  }
+
+  // Write the config BEFORE auth and discovery. Both read demo.config.json —
+  // auth opens config.auth.loginUrl and discover appends routes to baseUrl — so
+  // writing afterwards would point them at whatever product the file described
+  // previously, and quietly log in to and crawl the wrong app.
+  const { file, keptScenes, count } = writeConfig({ name, baseUrl, voice, resetScenes });
+
   await stepAuth(5, TOTAL, baseUrl);
   await stepDiscover(6, TOTAL);
-
-  const { file, keptScenes, count } = writeConfig({ name, baseUrl, voice });
 
   console.log(`\n${B('Done.')}`);
   hr();

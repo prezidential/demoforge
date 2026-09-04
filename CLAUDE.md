@@ -9,12 +9,13 @@ The rules for *authoring a demo* — reading the inventory, choosing selectors,
 writing narration, scene budgets, card modes, troubleshooting a bad build — are
 in the bundled skills, not here:
 
-- `skills/demo-video/` — writing and fixing `demo.config.json` (start here)
-- `skills/demo-setup/` — first-run setup, keys, login, discovery
-- `skills/demo-build/` — which stage to run and what each one costs
+- `.claude/skills/demo-video/` — writing and fixing `demo.config.json` (start here)
+- `.claude/skills/demo-setup/` — first-run setup, keys, login, discovery
+- `.claude/skills/demo-build/` — which stage to run and what each one costs
 
-They live as skills so they travel with the plugin instead of being stranded in
-this folder. **If you are here to make a demo, read `skills/demo-video/SKILL.md`.**
+They live in `.claude/skills/`, so Claude Code loads them automatically whenever
+you are working inside a clone of this repo — which is exactly when you need
+them. **If you are here to make a demo, read `.claude/skills/demo-video/SKILL.md`.**
 
 This file covers working *on* the pipeline itself.
 
@@ -44,7 +45,7 @@ src/
   preview-overlay.js renders overlays to stills without a full build
   compose.js         audio levelling, head trim, mux to mp4
 brand/               design-system assets consumed by overlay.js
-skills/              the plugin's bundled skills
+.claude/skills/      demo authoring knowledge, auto-loaded in this repo
 ```
 
 ## Things that will bite you
@@ -60,4 +61,4 @@ skills/              the plugin's bundled skills
 - **`validate` never clicks.** Selectors that only exist after an interaction
   will report as missing. That is a limitation, not a bug.
 
-Full failure catalogue: `skills/demo-video/references/troubleshooting.md`.
+Full failure catalogue: `.claude/skills/demo-video/references/troubleshooting.md`.

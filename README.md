@@ -76,24 +76,24 @@ Two files must never be committed. Both are gitignored from the first commit:
 
 ## Use with Claude Code
 
-This repo is also a Claude Code plugin. The knowledge that makes a demo good —
-selector stability, writing narration for the ear, scene budgets, the failure
-modes worth knowing — ships as skills so it travels with the tool:
+The knowledge that makes a demo good — selector stability, writing narration for
+the ear, scene budgets, the failure modes worth knowing — ships as skills in
+`.claude/skills/`:
 
 - `demo-video` — writing and fixing `demo.config.json`
 - `demo-setup` — first run, keys, login, discovery
 - `demo-build` — which stage to run and what each costs
 
-Install it from a clone:
+Nothing to install. Open this folder in Claude Code and they load automatically,
+so "write me a ninety second demo of the approval flow" produces a config that
+follows the house rules instead of inventing selectors.
 
-```
-/plugin marketplace add /path/to/demoforge
-/plugin install demoforge@demoforge
-```
-
-Adding a marketplace by local path always works, so a private clone is never a
-dead end. Adding it directly by remote URL may also work depending on your
-Claude Code version and how the remote authenticates.
+These are deliberately project skills rather than an installable plugin.
+demoforge is project-shaped — each demo needs its own `demo.config.json`,
+`.auth/` session, and `build/` directory, plus `node_modules` and ffmpeg — so
+the skills are only useful where the project is, and that is exactly where they
+live. A globally installed plugin would load the same advice into directories
+where none of its commands could run.
 
 ## Why narration comes first
 
